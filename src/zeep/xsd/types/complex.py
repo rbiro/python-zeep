@@ -239,6 +239,16 @@ class ComplexType(AnyType):
         if isinstance(value, dict):
             return self(**value)
 
+        # handle the mixed positional args and keywords are case.
+        if (isinstance(value, tuple)):
+            if (isinstance(value[-1], dict)):
+                kwargs = value[-1]
+                args = value[0:-1]
+            else:
+                kwargs = {}
+                args = value
+            return self(*args, **kwargs)
+
         # Check if the valueclass only expects one value, in that case
         # we can try to automatically create an object for it.
         if len(self.attributes) + len(self.elements) == 1:
