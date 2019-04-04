@@ -1,28 +1,30 @@
 class Error(Exception):
-    def __init__(self, message=''):
+    def __init__(self, message=""):
         super(Exception, self).__init__(message)
         self.message = message
 
     def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self.message)
+        return "%s(%r)" % (self.__class__.__name__, self.message)
 
 
 class XMLSyntaxError(Error):
-    pass
+    def __init__(self, *args, **kwargs):
+        self.content = kwargs.pop("content", None)
+        super(XMLSyntaxError, self).__init__(*args, **kwargs)
 
 
 class XMLParseError(Error):
     def __init__(self, *args, **kwargs):
-        self.filename = kwargs.pop('filename', None)
-        self.sourceline = kwargs.pop('sourceline', None)
+        self.filename = kwargs.pop("filename", None)
+        self.sourceline = kwargs.pop("sourceline", None)
         super(XMLParseError, self).__init__(*args, **kwargs)
 
     def __str__(self):
         location = None
         if self.filename and self.sourceline:
-            location = '%s:%s' % (self.filename, self.sourceline)
+            location = "%s:%s" % (self.filename, self.sourceline)
         if location:
-            return '%s (%s)' % (self.message, location)
+            return "%s (%s)" % (self.message, location)
         return self.message
 
 
@@ -35,14 +37,17 @@ class WsdlSyntaxError(Error):
 
 
 class TransportError(Error):
-    pass
+    def __init__(self, message="", status_code=0, content=None):
+        super(TransportError, self).__init__(message)
+        self.status_code = status_code
+        self.content = content
 
 
 class LookupError(Error):
     def __init__(self, *args, **kwargs):
-        self.qname = kwargs.pop('qname', None)
-        self.item_name = kwargs.pop('item_name', None)
-        self.location = kwargs.pop('location', None)
+        self.qname = kwargs.pop("qname", None)
+        self.item_name = kwargs.pop("item_name", None)
+        self.location = kwargs.pop("location", None)
         super(LookupError, self).__init__(*args, **kwargs)
 
 
@@ -66,15 +71,23 @@ class ZeepWarning(RuntimeWarning):
 
 class ValidationError(Error):
     def __init__(self, *args, **kwargs):
-        self.path = kwargs.pop('path', [])
+        self.path = kwargs.pop("path", [])
         super(ValidationError, self).__init__(*args, **kwargs)
 
     def __str__(self):
         if self.path:
-            path = '.'.join(str(x) for x in self.path)
-            return '%s (%s)' % (self.message, path)
+            path = ".".join(str(x) for x in self.path)
+            return "%s (%s)" % (self.message, path)
         return self.message
 
 
 class SignatureVerificationFailed(Error):
+    pass
+
+
+class IncompleteMessage(Error):
+    pass
+
+
+class IncompleteOperation(Error):
     pass

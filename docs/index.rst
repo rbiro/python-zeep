@@ -1,16 +1,18 @@
 ========================
-Zeep: Python SOAP client 
+Zeep: Python SOAP client
 ========================
 
 A fast and modern Python SOAP client
 
 Highlights:
- * Compatible with Python 2.7, 3.3, 3.4, 3.5, 3.6 and PyPy
+ * Compatible with Python 2.7, 3.3, 3.4, 3.5, 3.6, 3.7 and PyPy
  * Build on top of lxml and requests
  * Support for Soap 1.1, Soap 1.2 and HTTP bindings
  * Support for WS-Addressing headers
  * Support for WSSE (UserNameToken / x.509 signing)
- * Experimental support for asyncio via aiohttp (Python 3.5+)
+ * Support for tornado async transport via gen.coroutine (Python 2.7+)
+ * Support for asyncio via aiohttp (Python 3.5+)
+ * Experimental support for XOP messages
 
 
 A simple example:
@@ -43,8 +45,8 @@ in major speed benefits when processing large SOAP responses.
 The SOAP specifications are unfortunately really vague and leave a lot of
 things open for interpretation.  Due to this there are a lot of WSDL documents
 available which are invalid or SOAP servers which contain bugs. Zeep tries to
-be as compatible as possible but there might be cases where you run into 
-problems. Don't hesitate to submit an issue in this case (but please first 
+be as compatible as possible but there might be cases where you run into
+problems. Don't hesitate to submit an issue in this case (but please first
 read :ref:`reporting_bugs`).
 
 .. _lxml: http://lxml.de
@@ -56,9 +58,9 @@ Installation
 Zeep is a pure-python module.  This means that there is no C code which needs
 to be compiled.  However the lxml dependency does contain C code since it uses
 libxml2 and libxslt.  For linux/bsd this means you need to install libxml2-dev
-and libxslt-dev packages.  For Windows this is unfortunately a bit more 
+and libxslt-dev packages.  For Windows this is unfortunately a bit more
 complicated.  The easiest way is to install lxml via wheel files since that
-contains already compiled code for your platform. 
+contains already compiled code for your platform.
 
 To install wheel files you need a recent pip client.  See
 https://pip.pypa.io/en/stable/installing/ how to install pip on your platform.
@@ -70,22 +72,28 @@ If you have installed pip then run::
 
 
 This assumes that there are wheel files available for the latest lxml release.
-If that is not the case (https://pypi.python.org/pypi/lxml/) then first 
-install lxml 3.7.1 since that release should have the wheel files for all
+If that is not the case (https://pypi.python.org/pypi/lxml/) then first
+install lxml 4.2.5 since that release should have the wheel files for all
 platforms::
 
-    pip install lxml==3.7.1 zeep
+    pip install lxml==4.2.5 zeep
 
 
 When you want to use wsse.Signature() you will need to install the python
-xmlsec module. This can be done by install the ``xlmsec`` extras::
+xmlsec module. This can be done by installing the ``xmlsec`` extras::
 
     pip install zeep[xmlsec]
 
-For the asyncio support in Python 3.5+ the aiohttp module is required, this 
+For the asyncio support in Python 3.5+ the aiohttp module is required, this
 can be installed with the ``async`` extras::
 
     pip install zeep[async]
+
+
+For the tornado support in Python 2.7+ the tornado module is required, this
+can be installed with the ``tornado`` extras::
+
+    pip install zeep[tornado]
 
 
 Getting started
@@ -100,11 +108,12 @@ implement. This can be done with::
 See ``python -mzeep --help`` for more information about this command.
 
 
-.. note:: Since this module hasn't reached 1.0.0 yet their might be minor
-          releases which introduce backwards compatible changes. While I try 
-          to keep this to a minimum it can still happen. So as always pin the 
-          version of zeep you used (e.g. ``zeep==0.24.0``').
+.. note:: Zeep follows `semver`_ for versioning, however bugs can always occur.
+          So as always pin the version of zeep you tested with
+          (e.g. ``zeep==3.3.1``').
 
+
+.. _semver: http://semver.org/
 
 
 A simple use-case
@@ -120,14 +129,21 @@ To give you an idea how zeep works a basic example.
     client = zeep.Client(wsdl=wsdl)
     print(client.service.Method1('Zeep', 'is cool'))
 
-The WSDL used above only defines one simple function (``Method1``) which is 
+The WSDL used above only defines one simple function (``Method1``) which is
 made available by zeep via ``client.service.Method1``. It takes two arguments
-and returns a string. To get an overview of the services available on the 
+and returns a string. To get an overview of the services available on the
 endpoint you can run the following command in your terminal.
 
 .. code-block:: bash
 
     python -mzeep http://www.soapclient.com/xml/soapresponder.wsdl
+
+
+.. note::
+
+    Note that unlike suds, zeep doesn't enable caching of the wsdl documents
+    by default. This means that everytime you initialize the client requests
+    are done to retrieve the wsdl contents.
 
 
 User guide
@@ -138,8 +154,9 @@ User guide
 
    in_depth
    client
-   headers
+   settings
    transport
+   headers
    datastructures
    attachments
    wsa
@@ -164,18 +181,3 @@ Changelog
    :maxdepth: 2
 
    changes
-
-
-Support
-=======
-
-If you encounter bugs then please `let me know`_ . Please see :doc:`reporting_bugs`
-for information how to best report them.
-
-I'm also able to offer commercial support.  As in contracting work. Please
-contact me at info@mvantellingen.nl for more information. If you just have a
-random question and don't intent to actually pay me for my support then please
-DO NOT email me at that e-mail address but just use stackoverflow or something..
-
-
-.. _let me know: https://github.com/mvantellingen/python-zeep/issues

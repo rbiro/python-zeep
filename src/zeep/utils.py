@@ -2,8 +2,9 @@ import cgi
 import inspect
 
 from lxml import etree
-from zeep.ns import XSD
+
 from zeep.exceptions import XMLParseError
+from zeep.ns import XSD
 
 
 def qname_attr(node, attr_name, target_namespace=None):
@@ -14,22 +15,23 @@ def qname_attr(node, attr_name, target_namespace=None):
 
 def as_qname(value, nsmap, target_namespace=None):
     """Convert the given value to a QName"""
-    if ':' in value:
-        prefix, local = value.split(':')
+    value = value.strip()  # some xsd's contain leading/trailing spaces
+    if ":" in value:
+        prefix, local = value.split(":")
 
         # The xml: prefix is always bound to the XML namespace, see
         # https://www.w3.org/TR/xml-names/
-        if prefix == 'xml':
-            namespace = 'http://www.w3.org/XML/1998/namespace'
+        if prefix == "xml":
+            namespace = "http://www.w3.org/XML/1998/namespace"
         else:
             namespace = nsmap.get(prefix)
 
         if not namespace:
-            raise XMLParseError("No namespace defined for %r" % prefix)
+            raise XMLParseError("No namespace defined for %r (%r)" % (prefix, value))
 
         # Workaround for https://github.com/mvantellingen/python-zeep/issues/349
         if not local:
-            return etree.QName(XSD, 'anyType')
+            return etree.QName(XSD, "anyType")
 
         return etree.QName(namespace, local)
 
@@ -83,4 +85,4 @@ def detect_soap_env(envelope):
 def get_media_type(value):
     """Parse a HTTP content-type header and return the media-type"""
     main_value, parameters = cgi.parse_header(value)
-    return main_value
+    return main_value.lower()

@@ -1,10 +1,18 @@
-__all__ = ['RefElement', 'RefAttribute', 'RefAttributeGroup', 'RefGroup']
+"""
+zeep.xsd.elements.references
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ref* objecs are only used temporarily between parsing the schema and resolving
+all the elements.
+
+"""
+__all__ = ["RefElement", "RefAttribute", "RefAttributeGroup", "RefGroup"]
 
 
 class RefElement(object):
-
-    def __init__(self, tag, ref, schema, is_qualified=False,
-                 min_occurs=1, max_occurs=1):
+    def __init__(
+        self, tag, ref, schema, is_qualified=False, min_occurs=1, max_occurs=1
+    ):
         self._ref = ref
         self._is_qualified = is_qualified
         self._schema = schema
@@ -14,13 +22,14 @@ class RefElement(object):
     def resolve(self):
         elm = self._schema.get_element(self._ref)
         elm = elm.clone(
-            elm.qname, min_occurs=self.min_occurs, max_occurs=self.max_occurs)
+            elm.qname, min_occurs=self.min_occurs, max_occurs=self.max_occurs
+        )
         return elm.resolve()
 
 
 class RefAttribute(RefElement):
     def __init__(self, *args, **kwargs):
-        self._array_type = kwargs.pop('array_type', None)
+        self._array_type = kwargs.pop("array_type", None)
         super(RefAttribute, self).__init__(*args, **kwargs)
 
     def resolve(self):
@@ -37,4 +46,8 @@ class RefAttributeGroup(RefElement):
 
 class RefGroup(RefElement):
     def resolve(self):
-        return self._schema.get_group(self._ref)
+        elm = self._schema.get_group(self._ref)
+        elm = elm.clone(
+            elm.qname, min_occurs=self.min_occurs, max_occurs=self.max_occurs
+        )
+        return elm
